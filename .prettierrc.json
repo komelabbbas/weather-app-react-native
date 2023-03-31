@@ -1,0 +1,31 @@
+{
+  "trailingComma": "none",
+  "tabWidth": 2,
+  "semi": false,
+  "singleQuote": true,
+  "bracketSpacing": true,
+  "jsxBracketSameLine": true,
+  "arrowParens": "avoid",
+  "importOrder": [
+    "^react",
+    "^expo",
+    "@react",
+    "^redux",
+    "^recompose$",
+    "^lodash",
+    "^moment",
+    "^@react-navigation$",
+    "^@react-navigation",
+    "^locales/use-translation$",
+    "^stores$",
+    "^stores",
+    "^screens$",
+    "^screens",
+    "<THIRD_PARTY_MODULES>",
+    "^[./]",
+    "^@.navigation*",
+    "^@.utils*",
+    "^@.*"
+  ],
+  "importOrderSortSpecifiers": true
+}

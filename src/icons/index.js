@@ -1,0 +1,6 @@
+export * from './cloudy-icon'
+export * from './menu-icon'
+export * from './moon-icon'
+export * from './rain-icon'
+export * from './search-icon'
+export * from './sun-icon'
