@@ -16,7 +16,11 @@ const CurrentForecast = ({ currentWeather }) => {
             />
           )}
           <CurrentDegrees>
-            {Math.round(currentWeather.current && currentWeather.current.temp)}
+            {currentWeather?.current
+              ? Math.round(
+                  currentWeather.current && currentWeather.current.temp
+                )
+              : 0}
             °C
           </CurrentDegrees>
         </CurrentTempView>
