@@ -3,7 +3,7 @@ import { LogBox } from 'react-native'
 import AppProvider from './src'
 import { ImageBackground } from 'react-native'
 
-import bgImg from './assets/4.png'
+import bgImg from './assets/background.png'
 import { FlashMessage } from '@/components/flash-message'
 
 console.warn = () => {}

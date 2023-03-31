@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import * as Location from 'expo-location'
 import { ScrollView } from 'react-native'
 import axios from 'axios'
 import SearchBar from './components/SearchBar'
@@ -39,23 +40,33 @@ const App = () => {
     }
   }
 
-  //updates the weather when lat long changes
-  // useEffect(() => {
-  //   fetch(
-  //     `${config.WEATHER_API_URL}/data/2.5/onecall?lat=${lat}&lon=${long}&exclude=hourly,minutely&units=metric&appid=${config.WEATHER_ID}`,
-  //     { signal }
-  //   )
-  //     .then(res => res.json())
-  //     .then(data => {
-  //       setWeather(data)
-  //     })
-  //     .catch(err => {
-  //       console.log('error', err)
-  //     })
-  //   return () => controller.abort()
-  // }, [lat, long])
+  const fetchUserCurrentLocation = async () => {
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== 'granted') {
+        console.log('status', status)
+        return
+      }
+
+      const location = await Location.getCurrentPositionAsync({})
+      const coords = {
+        lat: location.coords.latitude,
+        lon: location.coords.longitude
+      }
+
+      const response = await axios.get(
+        `${config.WEATHER_BASE_URL}/data/2.5/weather?appid=${config.WEATHER_ID}&units=imperial&lat=${coords.lat}&lon=${coords.lon}`
+      )
+      const city = response.data.name
+      setCity(city)
+      searchByLatLong(coords)
+    } catch (err) {
+      console.log('err', err)
+    }
+  }
 
   useEffect(() => {
+    fetchUserCurrentLocation()
     return () => {}
   }, [])
   return (
