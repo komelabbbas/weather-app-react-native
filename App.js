@@ -1,7 +1,9 @@
 import { StatusBar } from 'expo-status-bar'
-import { StyleSheet, View } from 'react-native'
 import { LogBox } from 'react-native'
 import AppProvider from './src'
+import { ImageBackground } from 'react-native'
+
+import bgImg from './assets/4.png'
 
 console.warn = () => {}
 LogBox.ignoreLogs(['Warning: ...'])
@@ -9,18 +11,9 @@ LogBox.ignoreAllLogs()
 
 export default function App() {
   return (
-    <View style={styles.container}>
+    <ImageBackground source={bgImg} style={{ width: '100%', height: '100%' }}>
       <StatusBar style="auto" />
       <AppProvider />
-    </View>
+    </ImageBackground>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center'
-  }
-})

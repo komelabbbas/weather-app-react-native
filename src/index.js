@@ -1,298 +1,84 @@
-import React, { useRef } from 'react'
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  ImageBackground,
-  useWindowDimensions,
-  StatusBar,
-  Animated,
-  TouchableOpacity
-} from 'react-native'
-
-import Locations from './model/locations'
-
-import { getStatusBarHeight } from 'react-native-status-bar-height'
-import { AssetSvg } from './components/AssetSvg'
-
-const WeatherIcon = weatherType => {
-  if (weatherType == 'Sunny') {
-    return (
-      <AssetSvg name={AssetSvg.icons.sun} width={34} height={34} fill="#fff" />
-    )
-  }
-  if (weatherType == 'Rainy') {
-    return (
-      <AssetSvg name={AssetSvg.icons.rain} width={34} height={34} fill="#fff" />
-    )
-  }
-  if (weatherType == 'Cloudy') {
-    return (
-      <AssetSvg
-        name={AssetSvg.icons.cloudy}
-        width={34}
-        height={34}
-        fill="#fff"
-      />
-    )
-  }
-  if (weatherType == 'Night') {
-    return (
-      <AssetSvg name={AssetSvg.icons.moon} width={34} height={34} fill="#fff" />
-    )
-  }
-}
+import React, { useEffect, useState } from 'react'
+import { ScrollView } from 'react-native'
+import SearchBar from './components/SearchBar'
+import CurrentForecast from './components/CurrentForecast'
+import DailyForecast from './components/DailyForecast'
+import styled from 'styled-components/native'
+import config from '../config'
 
 const App = () => {
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions()
+  const [city, setCity] = useState('')
+  const [lat, setLat] = useState(43.6532)
+  const [long, setLong] = useState(-79.3832)
+  const [weather, setWeather] = useState({})
 
-  const scrollX = useRef(new Animated.Value(0)).current
+  const controller = new AbortController()
+  const signal = controller.signal
+
+  //fetch lat long by city
+  const fetchLatLongHandler = () => {
+    fetch(
+      `${config.WEATHER_BASE_URL}/data/2.5/weather?q=${city}&APPID=${config.WEATHER_ID}`
+    )
+      .then(res => res.json())
+      .then(data => {
+        setLat(data.coord.lat)
+        setLong(data.coord.lon)
+      })
+  }
+
+  //updates the weather when lat long changes
+  useEffect(() => {
+    fetch(
+      `${config.WEATHER_API_URL}/data/2.5/onecall?lat=${lat}&lon=${long}&exclude=hourly,minutely&units=metric&appid=${config.WEATHER_ID}`,
+      { signal }
+    )
+      .then(res => res.json())
+      .then(data => {
+        setWeather(data)
+      })
+      .catch(err => {
+        console.log('error', err)
+      })
+    return () => controller.abort()
+  }, [lat, long])
 
   return (
     <>
-      <StatusBar barStyle="light-content" />
-
+      <SearchBar
+        city={city}
+        setCity={setCity}
+        fetchLatLongHandler={fetchLatLongHandler}
+      />
       <ScrollView
-        horizontal={true}
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onScroll={Animated.event(
-          [
-            {
-              nativeEvent: {
-                contentOffset: {
-                  x: scrollX
-                }
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 50 }}
+        style={{ flex: 1 }}>
+        <CurrentForecast currentWeather={weather} timezone={weather.timezone} />
+        <FutureForecastContainer>
+          {weather.daily ? (
+            weather.daily.map((day, index) => {
+              if (index !== 0) {
+                return <DailyForecast key={day.dt} day={day} index={index} />
               }
-            }
-          ],
-          { useNativeDriver: false }
-        )}
-        scrollEventThrottle={1}>
-        {Locations.map((location, index) => {
-          let bgImg = ''
-          if (location.weatherType == 'Sunny') {
-            bgImg = require('./image/sunny.jpg')
-          } else if (location.weatherType == 'Night') {
-            bgImg = require('./image/night2.jpg')
-          } else if (location.weatherType == 'Cloudy') {
-            bgImg = require('./image/cloudy.jpeg')
-          } else if (location.weatherType == 'Rainy') {
-            bgImg = require('./image/rainy.jpg')
-          }
-
-          return (
-            <View
-              style={{ width: windowWidth, height: windowHeight }}
-              key={index}>
-              <ImageBackground
-                source={bgImg}
-                style={{
-                  flex: 1
-                }}>
-                <View
-                  style={{
-                    flex: 1,
-                    backgroundColor: 'rgba(0,0,0,0.3)',
-                    padding: 20
-                  }}>
-                  <View style={styles.topInfoWrapper}>
-                    <View>
-                      <Text style={styles.city}>{location.city}</Text>
-                      <Text style={styles.time}>{location.dateTime}</Text>
-                    </View>
-                    <View>
-                      <Text style={styles.temparature}>
-                        {location.temparature}
-                      </Text>
-                      <View style={{ flexDirection: 'row' }}>
-                        {WeatherIcon(location.weatherType)}
-                        <Text style={styles.weatherType}>
-                          {location.weatherType}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                  <View
-                    style={{
-                      borderBottomColor: 'rgba(255,255,255,0.7)',
-                      marginTop: 20,
-                      borderBottomWidth: 1
-                    }}
-                  />
-                  <View style={styles.bottomInfoWrapper}>
-                    <View style={{ alignItems: 'center' }}>
-                      <Text style={styles.infoText}>Wind</Text>
-                      <Text style={[styles.infoText, { fontSize: 24 }]}>
-                        {location.wind}
-                      </Text>
-                      <Text style={styles.infoText}>km/h</Text>
-                      <View style={styles.infoBar}>
-                        <View
-                          style={{
-                            width: location.wind / 2,
-                            height: 5,
-                            backgroundColor: '#69F0AE'
-                          }}
-                        />
-                      </View>
-                    </View>
-                    <View style={{ alignItems: 'center' }}>
-                      <Text style={styles.infoText}>Rain</Text>
-                      <Text style={[styles.infoText, { fontSize: 24 }]}>
-                        {location.rain}
-                      </Text>
-                      <Text style={styles.infoText}>%</Text>
-                      <View style={styles.infoBar}>
-                        <View
-                          style={{
-                            width: location.rain / 2,
-                            height: 5,
-                            backgroundColor: '#F44336'
-                          }}
-                        />
-                      </View>
-                    </View>
-                    <View style={{ alignItems: 'center' }}>
-                      <Text style={styles.infoText}>Humidity</Text>
-                      <Text style={[styles.infoText, { fontSize: 24 }]}>
-                        {location.humidity}
-                      </Text>
-                      <Text style={styles.infoText}>%</Text>
-                      <View style={styles.infoBar}>
-                        <View
-                          style={{
-                            width: location.humidity / 2,
-                            height: 5,
-                            backgroundColor: '#F44336'
-                          }}
-                        />
-                      </View>
-                    </View>
-                  </View>
-                </View>
-              </ImageBackground>
-            </View>
-          )
-        })}
+            })
+          ) : (
+            <NoWeather>No Weather to show</NoWeather>
+          )}
+        </FutureForecastContainer>
       </ScrollView>
-
-      <View style={styles.appHeader}>
-        <TouchableOpacity onPress={() => {}}>
-          <AssetSvg
-            name={AssetSvg.icons.search}
-            width={24}
-            height={24}
-            fill="#fff"
-          />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => {}}>
-          <AssetSvg
-            name={AssetSvg.icons.menu}
-            width={24}
-            height={24}
-            fill="#fff"
-          />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.indicatorWrapper}>
-        {Locations.map((location, index) => {
-          const width = scrollX.interpolate({
-            inputRange: [
-              windowWidth * (index - 1),
-              windowWidth * index,
-              windowWidth * (index + 1)
-            ],
-            outputRange: [5, 12, 5],
-            extrapolate: 'clamp'
-          })
-          return (
-            <Animated.View key={index} style={[styles.normalDot, { width }]} />
-          )
-        })}
-      </View>
     </>
   )
 }
 
-export default App
+const NoWeather = styled.Text`
+  text-align: center;
+  color: white;
+`
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  appHeader: {
-    position: 'absolute',
-    top: 0,
-    width: '100%',
-    height: getStatusBarHeight() + 40,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    paddingHorizontal: 20
-  },
-  topInfoWrapper: {
-    flex: 1,
-    marginTop: 160,
-    justifyContent: 'space-between'
-  },
-  city: {
-    color: '#fff',
-    fontSize: 30,
-    fontFamily: 'Lato-Regular',
-    fontWeight: 'bold'
-  },
-  time: {
-    color: '#fff',
-    fontFamily: 'Lato-Regular',
-    fontWeight: 'bold'
-  },
-  temparature: {
-    color: '#fff',
-    fontFamily: 'Lato-Light',
-    fontSize: 85
-  },
-  weatherType: {
-    color: '#fff',
-    fontFamily: 'Lato-Regular',
-    fontWeight: 'bold',
-    fontSize: 25,
-    lineHeight: 34,
-    marginLeft: 10
-  },
-  bottomInfoWrapper: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 20
-  },
-  infoText: {
-    color: 'white',
-    fontSize: 14,
-    fontFamily: 'Lato-Regular',
-    fontWeight: 'bold'
-  },
-  infoBar: {
-    width: 45,
-    height: 5,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)'
-  },
-  indicatorWrapper: {
-    position: 'absolute',
-    top: 140,
-    left: 20,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  normalDot: {
-    height: 5,
-    width: 5,
-    borderRadius: 4,
-    marginHorizontal: 4,
-    backgroundColor: '#fff'
-  }
-})
+const FutureForecastContainer = styled.View`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`
+
+export default App
