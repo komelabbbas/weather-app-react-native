@@ -1,11 +1,7 @@
 import React from 'react'
 import styled from 'styled-components/native'
 
-const ForecastSearch = ({ city, setCity, fetchLatLongHandler }) => {
-  const handleSubmit = e => {
-    fetchLatLongHandler()
-  }
-
+const ForecastSearch = ({ city, setCity, searchByCity }) => {
   return (
     <Container>
       <SearchBy>
@@ -26,7 +22,8 @@ const ForecastSearch = ({ city, setCity, fetchLatLongHandler }) => {
         onChangeText={setCity}
         value={city}
         placeholder={'Search By City'}
-        onSubmitEditing={handleSubmit}
+        onSubmitEditing={searchByCity}
+        returnKeyType="search"
       />
     </Container>
   )

@@ -4,6 +4,7 @@ import AppProvider from './src'
 import { ImageBackground } from 'react-native'
 
 import bgImg from './assets/4.png'
+import { FlashMessage } from '@/components/flash-message'
 
 console.warn = () => {}
 LogBox.ignoreLogs(['Warning: ...'])
@@ -14,6 +15,7 @@ export default function App() {
     <ImageBackground source={bgImg} style={{ width: '100%', height: '100%' }}>
       <StatusBar style="auto" />
       <AppProvider />
+      <FlashMessage position="top" />
     </ImageBackground>
   )
 }
